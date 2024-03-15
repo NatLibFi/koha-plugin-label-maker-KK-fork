@@ -17,14 +17,14 @@ our $VERSION = "{VERSION}";
 
 ## Here is our metadata, some keys are required, some are optional
 our $metadata = {
-    name            => 'Label Maker',
+    name            => '[KK-fork] Label Maker',
     author          => 'Kyle M Hall',
     date_authored   => '2018-06-07',
-    date_updated    => "1900-01-01",
-    minimum_version => '17.05.00.000',
+    date_updated    => '1900-01-01',
+    minimum_version => '23.11',
     maximum_version => undef,
     version         => $VERSION,
-    description     => 'An alternative label creator for Koha powered by HTML and CSS'
+    description     => 'An alternative label creator for Koha powered by HTML and CSS. Includes Call Slip feature.'
 };
 
 sub new {
