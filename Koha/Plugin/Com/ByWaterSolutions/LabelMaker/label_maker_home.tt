@@ -55,6 +55,9 @@
         <a class="btn btn-default" href="?class=[% CLASS %]&method=[% METHOD %]&action=patronprint">
             <i class="fa fa-print"></i> Print patron batch
         </a>
+        <a class="btn btn-default" href="?class=[% CLASS %]&method=[% METHOD %]&action=printcallslips">
+            <i class="fa fa-print"></i> Print Call Slips
+        </a>
     </div>
 
     <div id="tabs" class="toptabs">
