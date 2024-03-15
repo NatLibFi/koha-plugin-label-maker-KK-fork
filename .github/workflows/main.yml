@@ -1,3 +1,6 @@
+---
+# Based on https://raw.githubusercontent.com/bywatersolutions/koha-plugin-kitchen-sink/master/.github/workflows/main.yml
+
 name: CI
 on:
   push:
@@ -5,12 +8,22 @@ on:
       - master
     tags:
       - 'v*.*.*'
-  schedule:
-    - cron: "0 6 * * *"
+
+# schedule:
+#     - cron: "0 6 * * *"
+# CARELESS! Kept as commented to match with bywatersolutions/koha-plugin-kitchen-sink parts, but:
+# does not recommend to use schedule for CI, it usually just burns Earth's Forests,
+# but if you have a reason to use it, set the periout and uncomment the lines above.
+# MORE: mind that even if you need it, someone will fork this enabled - but do THEY need this?
+
+permissions:
+  contents: write
+
 jobs:
   unit_tests:
     name: Run unit tests
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
     strategy:
       fail-fast: false
       matrix:
@@ -127,6 +140,8 @@ jobs:
   release:
     name: Build & Release
     runs-on: ubuntu-latest
+    # save energy and prevent versions mess: make this action to run ONLY on creator's repository
+    # if: github.repository == 'NatLibFi/koha-plugin-label-maker'
     if: startsWith(github.ref, 'refs/tags/v')
     needs: unit_tests
     strategy:
@@ -186,18 +201,21 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  keepalive:
-    name: Keep Alive
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Check age and push commit if needed
-      run: |
-        LAST_COMMIT=$( git --no-pager log -1 --format=%ct )
-        NOW=$(date +%s)
-        DIFF=$(($NOW-$LAST_COMMIT))
-        DAYS=$(($DIFF/86400))
-        git config --global user.email kyle@bywatersolutions.com
-        git config --global user.name "Kyle M Hall"
-        git commit --allow-empty -m "Automated commit from keep alive workflow"
-        if [ "$DAYS" -gt "50" ]; then git push; fi
+#   # CARELESS! Kept as commented, to match with bywatersolutions/koha-plugin-kitchen-sink parts, but:
+#   # does not recommend to use keepalive for CI, it usually just burns Earth's Forests!
+#   # MORE: mind that even if you need it, someone will fork this enabled - but do THEY need this?
+#   keepalive:
+#     name: Keep Alive
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#       - name: Check age and push commit if needed
+#         run: |
+#           LAST_COMMIT=$( git --no-pager log -1 --format=%ct )
+#           NOW=$(date +%s)
+#           DIFF=$(($NOW-$LAST_COMMIT))
+#           DAYS=$(($DIFF/86400))
+#           git config --global user.email kyle@bywatersolutions.com
+#           git config --global user.name "Kyle M Hall"
+#           git commit --allow-empty -m "Automated commit from keep alive workflow"
+#           if [ "$DAYS" -gt "50" ]; then git push; fi
