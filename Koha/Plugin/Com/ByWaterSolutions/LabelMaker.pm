@@ -12,6 +12,8 @@ use Koha::Items;
 use Koha::Biblios;
 use Koha::Biblioitems;
 
+use C4::HoldsQueue qw( GetHoldsQueueItems );
+
 ## Here we set our plugin version
 our $VERSION = "{VERSION}";
 
@@ -113,6 +115,47 @@ sub tool {
         }
         else {
             $self->print_quicklabels_form();
+        }
+    }
+    elsif ( $action eq 'printcallslips') {
+        my $barcode         = $cgi->param('barcode');
+        my $template        = $cgi->param('template');
+        my $layout          = $cgi->param('layout');
+        my $printer_profile = $cgi->param('printer_profile');
+        my $starting_label  = $cgi->param('starting_label');
+
+        if ( $template && $layout ) {
+         my $branchlimit     = $cgi->param('branchlimit');
+         my $itemtypeslimit  = $cgi->param('itemtypeslimit');
+         my $ccodeslimit     = $cgi->param('ccodeslimit');
+         my $locationslimit  = $cgi->param('locationslimit');
+
+         my $items = GetHoldsQueueItems(
+             {
+                 branchlimit    => $branchlimit,
+                 itemtypeslimit => $itemtypeslimit,
+                 ccodeslimit    => $ccodeslimit,
+                 locationslimit => $locationslimit
+             }
+         );
+
+            $self->print_callslips(
+                {
+                    branchlimit     => $branchlimit,
+                    itemtypeslimit  => $itemtypeslimit,
+                    ccodeslimit     => $ccodeslimit,
+                    locationslimit  => $locationslimit,
+                    total           => $items->count,
+                    itemsloop       => $items,
+                    template        => $template,
+                    layout          => $layout,
+                    printer_profile => $printer_profile,
+                    starting_label  => $starting_label,
+                }
+            );
+        }
+        else {
+            $self->print_callslips_form();
         }
     }
     elsif ( $action eq 'edit' ) {
@@ -328,6 +371,35 @@ sub print_quicklabels_form {
     $self->output_html( $template->output() );
 }
 
+sub print_callslips_form {
+    my ( $self, $args ) = @_;
+
+    my $dbh = C4::Context->dbh;
+
+    my $templates =
+      $dbh->selectall_arrayref( 'SELECT * FROM plugin_label_maker_templates',
+        { Slice => {} } );
+
+    my $layouts =
+      $dbh->selectall_arrayref( 'SELECT * FROM plugin_label_maker_layouts',
+        { Slice => {} } );
+
+    my $printer_profiles =
+      $dbh->selectall_arrayref(
+        'SELECT * FROM plugin_label_maker_printer_profiles',
+        { Slice => {} } );
+
+    my $template = $self->get_template( { file => 'print_callslips_form.tt' } );
+
+    $template->param(
+        templates        => $templates,
+        layouts          => $layouts,
+        printer_profiles => $printer_profiles,
+    );
+
+    $self->output_html( $template->output() );
+}
+
 sub print_labels {
     my ( $self, $args ) = @_;
     my $batch_id           = $args->{batch};
@@ -379,6 +451,43 @@ sub print_labels {
 
     $page_template->param(
         items                  => \@items,
+        labels_template        => $template,
+        labels_layout          => $layout,
+        labels_printer_profile => $printer_profile,
+    );
+
+    $self->output_html( $page_template->output() );
+}
+
+sub print_callslips {
+    my ( $self, $args ) = @_;
+    my $items              = $args->{itemsloop};
+    my $template_id        = $args->{template};
+    my $layout_id          = $args->{layout};
+    my $printer_profile_id = $args->{printer_profile};
+    my $starting_label     = $args->{starting_label} || 1;
+
+    my $dbh = C4::Context->dbh;
+
+
+    my $template = $dbh->selectrow_hashref(
+        "SELECT * FROM plugin_label_maker_templates WHERE id = ?",
+        undef, $template_id );
+    my $layout = $dbh->selectrow_hashref(
+        "SELECT * FROM plugin_label_maker_layouts WHERE id = ?",
+        undef, $layout_id );
+    my $printer_profile = $dbh->selectrow_hashref(
+        "SELECT * FROM plugin_label_maker_printer_profiles WHERE id = ?",
+        undef, $printer_profile_id );
+
+    my $page_template = $self->get_template( { file => 'print_labels.tt' } );
+
+    # use Data::Dumper (); warn Data::Dumper->new( [{
+    #      items => $items,
+    #  }],[ __PACKAGE__ . ":" . __LINE__ ])->Sortkeys(sub{return [sort { lc $a cmp lc $b } keys %{ $_[0] }];})->Maxdepth(12)->Indent(1)->Purity(0)->Deepcopy(1)->Dump. "\n";
+
+    $page_template->param(
+        items                  => $items,
         labels_template        => $template,
         labels_layout          => $layout,
         labels_printer_profile => $printer_profile,

@@ -35,6 +35,9 @@
         <a class="btn btn-default" href="?class=[% CLASS %]&method=[% METHOD %]&action=quickprint">
             <i class="fa fa-print"></i> Quick spine label
         </a>
+        <a class="btn btn-default" href="?class=[% CLASS %]&method=[% METHOD %]&action=printcallslips">
+            <i class="fa fa-print"></i> Print Call Slips
+        </a>
     </div>
 
     <div id="tabs">
