@@ -140,13 +140,13 @@ sub tool {
         }
     }
     elsif ( $action eq 'printcallslips') {
-        my $barcode         = $cgi->param('barcode');
-        my $template        = $cgi->param('template');
-        my $layout          = $cgi->param('layout');
-        my $printer_profile = $cgi->param('printer_profile');
-        my $starting_label  = $cgi->param('starting_label');
+        my $template = $cgi->param('template');
 
-        if ( $template && $layout ) {
+        if ( $template ) {
+            my $layout          = $cgi->param('layout');
+            my $printer_profile = $cgi->param('printer_profile');
+            my $starting_label  = $cgi->param('starting_label');
+            my $barcode         = $cgi->param('barcode');
             my $branchlimit     = $cgi->param('branchlimit');
             my $itemtypeslimit  = $cgi->param('itemtypeslimit');
             my $ccodeslimit     = $cgi->param('ccodeslimit');
